@@ -32,6 +32,9 @@ button,input,select{font:inherit}button{cursor:pointer}.app{display:flex;min-hei
 
 /* Temporary visual demo data */
 .demo-banner{margin-bottom:14px;padding:10px 14px;border:1px solid #ddd8ff;background:#f4f2ff;color:#4f46e5;border-radius:12px;font-size:12px;font-weight:800;display:flex;justify-content:space-between;gap:12px}.demo-banner span{font-weight:600;color:#667085}.demo-chart{height:250px;padding:18px 20px;display:flex;align-items:flex-end;gap:10px}.demo-bar-wrap{flex:1;height:205px;display:flex;flex-direction:column;justify-content:flex-end;gap:7px}.demo-bar{background:linear-gradient(180deg,#8b83ff,#635bff);border-radius:7px 7px 3px 3px;min-height:12px}.demo-bar-label{text-align:center;font-size:10px;color:#98a2b3}.demo-table{width:100%;border-collapse:collapse}.demo-table th,.demo-table td{padding:12px 15px;border-bottom:1px solid #eef0f3;text-align:left;font-size:12px}.demo-table th{font-size:10px;color:#98a2b3;text-transform:uppercase;letter-spacing:.04em}.demo-tag{display:inline-flex;padding:5px 8px;border-radius:99px;font-size:10px;font-weight:800;background:#e8f8f1;color:#087f5b}.demo-tag.warn{background:#fff5e5;color:#a65b00}.demo-tag.blue{background:#eeecff;color:#554cf1}.demo-chart-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}.demo-mini-chart{height:160px;padding:16px;display:flex;align-items:flex-end;gap:8px}.demo-mini-chart i{flex:1;background:linear-gradient(180deg,#b1abff,#635bff);border-radius:5px 5px 2px 2px}.demo-note{font-size:11px;color:#98a2b3;padding:0 20px 16px}@media(max-width:720px){.demo-chart-grid{grid-template-columns:1fr}}
+
+/* Improved analytics demo charts */
+.analytics-chart{height:270px;padding:12px 18px 16px;position:relative}.analytics-chart svg{width:100%;height:210px;display:block}.chart-legend{display:flex;gap:16px;align-items:center;font-size:10px;color:#667085;margin-top:4px}.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}.range-pill{border:1px solid #e7eaf0;background:#fff;border-radius:9px;padding:7px 9px;font-size:10px;color:#475467}.chart-gridline{stroke:#edf0f4;stroke-width:1}.chart-line{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.chart-area{opacity:.08}.chart-axis{font-size:9px;fill:#98a2b3}.chart-value{font-size:9px;fill:#667085;font-weight:700}.chart-point{stroke:#fff;stroke-width:2}.analytics-two{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}@media(max-width:720px){.analytics-two{grid-template-columns:1fr}.analytics-chart{padding-left:12px;padding-right:12px}}
 </style>
 </head>
 <body>
@@ -116,11 +119,29 @@ const DEMO_DATA={
 function demoBanner(){return'<div class="demo-banner">DEMO DATA <span>Временные данные только для визуального просмотра. После твоего сигнала этот режим удалю из проекта.</span></div>'}
 function demoBars(){return DEMO_DATA.revenue.map((v,i)=>'<div class="demo-bar-wrap"><div class="demo-bar" style="height:'+Math.round([42,57,49,72,84,96][i]*1.7)+'px"></div><div class="demo-bar-label">'+DEMO_DATA.months[i]+'</div></div>').join('')}
 function demoDashboard(){
- const total="€29.7k";
+ const months=DEMO_DATA.months;
+ const rev=[3200,4100,3700,5400,6200,7100], exp=[1500,1700,1800,2100,2200,2400], profit=rev.map((v,i)=>v-exp[i]);
+ const max=7600, X=[42,122,202,282,362,442], y=v=>205-(v/max*170);
+ const path=a=>a.map((v,i)=>(i?'L':'M')+' '+X[i]+' '+y(v)).join(' ');
+ const area=(a)=>'M '+X[0]+' 205 '+a.map((v,i)=>'L '+X[i]+' '+y(v)).join(' ')+' L '+X[X.length-1]+' 205 Z';
+ const lineSvg='<svg viewBox="0 0 484 225" preserveAspectRatio="none">'+
+ [35,78,121,164,205].map(g=>'<line class="chart-gridline" x1="35" y1="'+g+'" x2="470" y2="'+g+'"></line>').join('')+
+ '<path class="chart-area" fill="#635bff" d="'+area(rev)+'"></path>'+
+ '<path class="chart-line" stroke="#635bff" d="'+path(rev)+'"></path>'+
+ '<path class="chart-line" stroke="#12a874" d="'+path(exp)+'"></path>'+
+ '<path class="chart-line" stroke="#d9822b" d="'+path(profit)+'"></path>'+
+ rev.map((v,i)=>'<circle class="chart-point" fill="#635bff" cx="'+X[i]+'" cy="'+y(v)+'" r="4"></circle>').join('')+
+ months.map((m,i)=>'<text class="chart-axis" x="'+X[i]+'" y="220" text-anchor="middle">'+m+'</text>').join('')+
+ '<text class="chart-value" x="470" y="'+(y(rev[5])-8)+'" text-anchor="end">€7.1k</text></svg>';
  return demoBanner()+
- '<div class="kpi-grid">'+kpi(tr('revenue'),total,'Apr–Sep')+kpi(tr('profit'),'€18.4k','62% margin')+kpi(tr('outstanding'),'€2.83k','2 invoices')+kpi(tx('margin'),'62%','+7 pts')+kpi(tx('utilization'),'78%','124 billable h')+kpi(tr('effective'),'€74/h','+€8 vs target')+'</div>'+
- '<div class="demo-chart-grid" style="margin-top:14px"><div class="panel"><div class="panel-head"><div><div class="panel-title">Revenue</div><div class="panel-sub">Последние 6 месяцев · DEMO</div></div><span class="demo-tag blue">TREND</span></div><div class="demo-chart">'+demoBars()+'</div></div>'+
- '<div class="panel"><div class="panel-head"><div><div class="panel-title">Cash position</div><div class="panel-sub">Прогноз на 90 дней</div></div></div><div class="demo-mini-chart">'+[62,76,68,82,91,78,88,96].map(h=>'<i style="height:'+h+'px"></i>').join('')+'</div><div class="demo-note">€8.4k current · €10.1k projected</div></div></div>'+
+ '<div class="kpi-grid">'+kpi(tr('revenue'),'€29.7k','Apr–Sep')+kpi(tr('profit'),'€18.4k','62% margin')+kpi(tr('outstanding'),'€2.83k','2 invoices')+kpi(tx('margin'),'62%','+7 pts')+kpi(tx('utilization'),'78%','124 billable h')+kpi(tr('effective'),'€74/h','+€8 vs target')+'</div>'+
+ '<div class="analytics-two" style="margin-top:14px"><div class="panel"><div class="panel-head"><div><div class="panel-title">Financial performance</div><div class="panel-sub">Revenue, expenses and net profit · DEMO</div></div><select class="range-pill"><option>Last 6 months</option><option>Last 12 months</option><option>This year</option></select></div><div class="analytics-chart">'+lineSvg+'<div class="chart-legend"><span><i class="legend-dot" style="background:#635bff"></i>Revenue</span><span><i class="legend-dot" style="background:#12a874"></i>Expenses</span><span><i class="legend-dot" style="background:#d9822b"></i>Net profit</span></div></div></div>'+
+ '<div class="panel"><div class="panel-head"><div><div class="panel-title">Cash position</div><div class="panel-sub">Current vs projected</div></div></div><div class="analytics-chart"><svg viewBox="0 0 360 225" preserveAspectRatio="none">'+
+ [35,78,121,164,205].map(g=>'<line class="chart-gridline" x1="28" y1="'+g+'" x2="340" y2="'+g+'"></line>').join('')+
+ '<path class="chart-area" fill="#12a874" d="M28 175 L72 158 L116 166 L160 139 L204 119 L248 128 L292 103 L340 86 L340 205 L28 205 Z"></path>'+
+ '<path class="chart-line" stroke="#12a874" d="M28 175 L72 158 L116 166 L160 139 L204 119 L248 128 L292 103 L340 86"></path>'+
+ '<text class="chart-value" x="340" y="77" text-anchor="end">€10.1k</text>'+
+ '<text class="chart-axis" x="28" y="220">Now</text><text class="chart-axis" x="340" y="220" text-anchor="end">90 days</text></svg><div class="chart-legend"><span><i class="legend-dot" style="background:#12a874"></i>Projected balance</span></div></div></div></div>'+
  '<div class="panel" style="margin-top:14px">'+head(tx('pipelineTitle'),'DEMO · 7 active opportunities',tr('new'))+'<div class="pipeline">'+[['New','3','€2.4k'],['Qualified','2','€4.7k'],['Proposal','2','€5.3k'],['Won','4','€11.8k'],['Lost','1','€900']].map(x=>'<div class="stage"><div class="stage-top"><span>'+x[0]+'</span><span>'+x[1]+'</span></div><div class="stage-count">'+x[2]+'</div><div class="drop">Weighted value</div></div>').join('')+'</div></div>'+
  '<div class="panel" style="margin-top:14px"><div class="panel-head"><div><div class="panel-title">Recent invoices</div><div class="panel-sub">DEMO records</div></div></div><table class="demo-table"><thead><tr><th>Invoice</th><th>Client</th><th>Amount</th><th>Due</th><th>Status</th></tr></thead><tbody>'+DEMO_DATA.invoices.map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td><b>'+r[2]+'</b></td><td>'+r[3]+'</td><td><span class="demo-tag '+(r[4]==='Overdue'?'warn':'')+'">'+r[4]+'</span></td></tr>').join('')+'</tbody></table></div>'
 }
