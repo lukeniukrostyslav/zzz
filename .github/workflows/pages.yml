@@ -11,7 +11,38 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Validate locale coverage and required app files
+        run: |
+          python - <<'PY'
+          import json, pathlib, re
+          root = pathlib.Path(".")
+          required = ["index.html", ".github/workflows/pages.yml"]
+          for p in required:
+              assert (root/p).exists(), f"Missing required file: {p}"
+          locales = {}
+          for code in ["en","ru","es","de","fr"]:
+              p = root/"locales"/f"{code}.json"
+              assert p.exists(), f"Missing locale: {code}"
+              locales[code] = json.loads(p.read_text(encoding="utf-8"))
+          base = set(locales["en"])
+          for code, data in locales.items():
+              missing = sorted(base - set(data))
+              extra = sorted(set(data) - base)
+              assert not missing, f"{code}: missing keys {missing}"
+              assert not extra, f"{code}: extra keys {extra}"
+          html = (root/"index.html").read_text(encoding="utf-8")
+          for marker in ["function tr(", "async function boot()", "locales/'+locale+'.json", 'id="lang"']:
+              assert marker in html, f"Missing i18n marker: {marker}"
+          assert "+tr('workspace')" not in html, "Unrendered sidebar translation expression remains"
+          print(f"Validated 5 locales, {len(base)} keys each.")
+          PY
   deploy:
+    needs: validate
     runs-on: ubuntu-latest
     environment:
       name: github-pages
