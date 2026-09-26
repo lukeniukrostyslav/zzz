@@ -211,7 +211,8 @@ function applyVisibleLocalization(){
  const close=document.querySelector('.prototype-close');if(close)close.setAttribute('aria-label',map['Close']||'Close');
  const pa=document.querySelectorAll('.prototype-actions .btn');if(pa.length>1){pa[0].textContent=map['Close']||'Close';pa[1].textContent=map['Continue']||'Continue'}
  const pk=document.querySelector('.prototype-kicker');if(pk)pk.textContent=map['PROTOTYPE']||'PROTOTYPE';
-}\nfunction go(s){screen=s;render();window.scrollTo(0,0)}
+}
+function go(s){screen=s;render();window.scrollTo(0,0)}
 document.getElementById('lang').onchange=e=>{lang=e.target.value;localStorage.setItem('pc-lang',lang);render()};
 async function boot(){for(const locale of ['en','ru','es','de','fr']){const res=await fetch('locales/'+locale+'.json');if(!res.ok)throw new Error('Locale '+locale+' failed: '+res.status);LOCALES[locale]=await res.json()}render()}
 boot().catch(err=>{document.getElementById('title').textContent='Loading error';document.getElementById('eyebrow').textContent=err.message});
