@@ -71,7 +71,7 @@ ru:{workspace:'Рабочее пространство',revenue:'Доходы',f
 };
 function tx(k){return(ex[lang]&&ex[lang][k])||ex.en[k]||k}
 function tr(k){return(LOCALES[lang]&&LOCALES[lang][k])||(LOCALES.en&&LOCALES.en[k])||k}
-function btn(t,p){return'<button type="button" class="btn '+(p?'primary':'')+'" onclick="prototypeAction('+JSON.stringify(t)+')">'+t+'</button>'}
+function btn(t,p){const s=String(t).replace(/\\/g,'\\\\').replace(/'/g,"\\'");return'<button type="button" class="btn '+(p?'primary':'')+'" onclick="prototypeAction(\''+s+'\')">'+t+'</button>'}
 function empty(t,s){return'<div class="drop-card"><div><div style="font-size:22px;margin-bottom:9px;color:#b0b5c0">＋</div><b>'+t+'</b><div style="margin-top:6px;line-height:1.5">'+s+'</div></div></div>'}
 function kpi(l,v,h){return'<div class="panel kpi"><div class="label">'+l+'</div><div class="value">'+v+'</div><div class="hint">'+h+'</div></div>'}
 function nav(){
